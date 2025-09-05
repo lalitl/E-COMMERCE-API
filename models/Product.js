@@ -13,7 +13,7 @@ const ProductSchema = new mongoose.Schema(
       required: [true, "Please provide product price"],
       default: 0,
     },
-    descriptio: {
+    description: {
       type: String,
       trim: true,
       required: [true, "Please provide product description"],
@@ -21,8 +21,8 @@ const ProductSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: [true, "Please provide product image"],
-      default: "/uploads/example.jpeg",
+      // required: [true, "Please provide product image"],
+      default: "/uploads/example.jpg",
     },
     category: {
       type: String,
@@ -58,6 +58,10 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    numOfReviews: {
+      type: Number,
+      default: 0,
+    },
     user: {
       type: mongoose.Types.ObjectId,
       ref: "User",
@@ -66,7 +70,24 @@ const ProductSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
   }
 );
+
+ProductSchema.virtual("reviews", {
+  ref: "Review",
+  localField: "_id",
+  foreignField: "product",
+  justOne: false,
+});
+
+ProductSchema.pre("remove", async function (next) {
+  this.model("Review").deleteMany({ product: this._id });
+});
 
 module.exports = mongoose.model("Product", ProductSchema);
